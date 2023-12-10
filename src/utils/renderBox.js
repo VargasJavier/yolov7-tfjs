@@ -10,12 +10,11 @@ function xywh2xyxy(x){
   return y;
 }
 
-export const renderBoxes = (canvasRef, threshold, boxes_data, scores_data, classes_data) => {
+export const renderBoxes = (canvasRef, threshold, boxes_data, scores_data, classes_data, handleChange) => {
 
   const ctx = canvasRef.current.getContext("2d");
 
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // clean canvas
-
   // font configs
   const font = "18px sans-serif";
   ctx.font = font;
@@ -25,8 +24,11 @@ export const renderBoxes = (canvasRef, threshold, boxes_data, scores_data, class
     //console.log('scores_data[i]: ', scores_data[i])
     if (scores_data[i] > threshold) {
       const klass = labels[classes_data[i]];
+      console.log('CLASES', klass)
+      handleChange(klass)
       const score = (scores_data[i] * 100).toFixed(1);
-
+      if (score < 85) continue
+      
       let [x1, y1, x2, y2] = xywh2xyxy(boxes_data[i]);
 
       const width = x2 - x1;

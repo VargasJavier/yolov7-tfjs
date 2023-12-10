@@ -6,6 +6,7 @@ import { Webcam } from "./utils/webcam";
 import { renderBoxes } from "./utils/renderBox";
 import { non_max_suppression } from "./utils/nonMaxSuppression";
 import "./style/App.css";
+import InputGenerate from "./components/InputGenerate";
 
 /**
  * Function to detect image.
@@ -22,6 +23,9 @@ function shortenedCol(arrayofarray, indexlist) {
 
 const App = () => {
   const [loading, setLoading] = useState({ loading: true, progress: 0 });
+  const [recognizedWords, setRecognizedWords] = useState([])
+  const [input, setInput] = useState('')
+  const [showVideo, setShowVideo] = useState(true)
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const webcam = new Webcam();
@@ -32,6 +36,29 @@ const App = () => {
    * Function to detect every frame loaded from webcam in video tag.
    * @param {tf.GraphModel} model loaded YOLOv7 tensorflow.js model
    */
+
+  const handleRecognizedWords = (word) => {
+    setRecognizedWords((prevRecognizedWords) => {
+      const isInclude = prevRecognizedWords.includes(word);
+  
+      if (!isInclude) {
+        const newRecognizedWords = [...prevRecognizedWords, word];
+        setInput(newRecognizedWords.join(' '));
+        return newRecognizedWords;
+      }
+
+      return prevRecognizedWords;
+    });
+  }
+
+  const handleChangeShowVideo = (isReset = false) => {
+    if (isReset) setInput('')
+    setShowVideo(!showVideo)
+  }
+
+  const handleInputGenerate = (e) => {
+    setInput(e.target.value)
+  }
 
   const detectFrame = async (model) => {
     const model_dim = [640, 640];
@@ -54,7 +81,7 @@ const App = () => {
       const scores = shortenedCol(detections, [4]);
       const class_detect = shortenedCol(detections, [5]);
 
-      renderBoxes(canvasRef, threshold, boxes, scores, class_detect);
+      renderBoxes(canvasRef, threshold, boxes, scores, class_detect, handleRecognizedWords);
       tf.dispose(res);
     });
 
@@ -78,23 +105,42 @@ const App = () => {
         webcam.open(videoRef, () => detectFrame(yolov7));
       });
     });
-  }, []);
+  }, [showVideo]);
   console.warn = () => {};
+
+  useEffect(() => {
+    console.log('PROCESS', import.meta.env.VITE_API_KEY)
+    console.log('RECOGNIZED CHANGE', recognizedWords)
+  }, [recognizedWords])
 
   return (
     <div className="App">
-      <h2>Object Detection Using YOLOv7 & Tensorflow.js</h2>
-      {loading.loading ? (
-        <Loader>Loading model... {(loading.progress * 100).toFixed(2)}%</Loader>
-      ) : (
-        <p> </p>
-      )}
-
-      <div className="content">
-        <video autoPlay playsInline muted ref={videoRef} id="frame"
-        />
-        <canvas width={640} height={640} ref={canvasRef} />
-      </div>
+      {
+        showVideo ? (
+          <div className="container content">
+            <h2>Object Detection Using YOLOv7 & Tensorflow.js</h2>
+            {loading.loading ? (
+              <Loader>Loading model... {(loading.progress * 100).toFixed(2)}%</Loader>
+            ) : (
+              <p> </p>
+            )}
+            <div className="content">
+              <video autoPlay playsInline muted ref={videoRef} id="frame"
+              />
+              <canvas width={640} height={640} ref={canvasRef}/>
+            </div>
+          </div>
+        ) : null
+      }
+      <InputGenerate
+        handleChangeShowVideo={handleChangeShowVideo}
+        handleChange={handleInputGenerate}
+        input={input}/>
+      {
+        !showVideo ? (
+          <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSd5gnpMcdZsDHaNXqaBRG5vB0ap1F9Z8GMjDGiDEQPQm1j_iA/viewform?embedded=true" width="640" height="720" frameborder="0" marginheight="0" marginwidth="0">Cargando…</iframe>
+        ) : null
+      }
     </div>
   );
 };
