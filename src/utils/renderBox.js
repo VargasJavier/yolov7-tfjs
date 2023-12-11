@@ -23,6 +23,7 @@ export const renderBoxes = (canvasRef, threshold, boxes_data, scores_data, class
   for (let i = 0; i < scores_data.length; ++i) {
     //console.log('scores_data[i]: ', scores_data[i])
     if (scores_data[i] > threshold) {
+      console.log('classes_data[i]', classes_data[i])
       const klass = labels[classes_data[i]];
       console.log('CLASES', klass)
       handleChange(klass)
