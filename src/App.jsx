@@ -118,7 +118,7 @@ const App = () => {
       {
         showVideo ? (
           <div className="container content">
-            <h2>Object Detection Using YOLOv7 & Tensorflow.js</h2>
+            <h2>Traductor de lenguaje de señas a texto</h2>
             {loading.loading ? (
               <Loader>Loading model... {(loading.progress * 100).toFixed(2)}%</Loader>
             ) : (
